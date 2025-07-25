@@ -499,7 +499,7 @@
             const currentTheme = localStorage.getItem('theme') || 'dark';
             if (currentTheme === 'light') {
                 document.body.classList.add('light-theme');
-                themeToggle.textContent = '🌙';
+                themeToggle.textContent = '�';
             }
             themeToggle.onclick = () => {
                 document.body.classList.toggle('light-theme');
@@ -702,7 +702,6 @@
             }
         }
 
-        // FIX: Re-added this function to seed initial links data for new users.
         async function seedInitialLinksIfNeeded(userId) {
             const linksCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/links`);
             const initialQuery = await getDocs(linksCollectionRef);
@@ -782,7 +781,10 @@
                     } else {
                         await signInAnonymously(auth);
                     }
-                } catch (error) { showMessage("Gagal memulakan sesi pengesahan."); }
+                } catch (error) {
+                    console.error("Authentication Error:", error);
+                    showMessage(`Gagal memulakan sesi pengesahan. Ralat: ${error.message}`);
+                }
             })();
         }
 
@@ -791,3 +793,4 @@
 
 </body>
 </html>
+�

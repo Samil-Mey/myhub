@@ -403,9 +403,6 @@
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'myhub-by-shamil-app';
         
-        // =================================================================
-        // UID Admin anda telah dimasukkan di sini
-        // =================================================================
         const ADMIN_UID = 'LG3URVl9wKZ6Qdj4pqecKtJTx382'; 
 
         const app = initializeApp(firebaseConfig);
@@ -658,7 +655,7 @@
             nameSpan.querySelector('.save-rename-btn').onclick = async () => {
                 const newName = input.value.trim();
                 if (newName && newName !== oldName && !currentCategories.includes(newName)) {
-                    const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings/categories`);
+                    const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
                     const linksCollectionRef = collection(db, `artifacts/${appId}/public/links`);
                     const q = query(linksCollectionRef, where("category", "==", oldName));
                     
@@ -684,7 +681,7 @@
         async function handleDeleteTab(tabName) {
             const confirmed = await showMessage(`Anda pasti mahu padam tab "${tabName}"? SEMUA pautan di dalamnya akan dipadam secara kekal.`, 'confirm');
             if (confirmed) {
-                const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings/categories`);
+                const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
                 const linksCollectionRef = collection(db, `artifacts/${appId}/public/links`);
                 const q = query(linksCollectionRef, where("category", "==", tabName));
 
@@ -701,7 +698,7 @@
             const input = document.getElementById('new-tab-name-input');
             const newName = input.value.trim();
             if (newName && !currentCategories.includes(newName)) {
-                const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings/categories`);
+                const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
                 await updateDoc(categoriesDocRef, { names: arrayUnion(newName) });
                 input.value = '';
             } else if (currentCategories.includes(newName)) {
@@ -752,23 +749,31 @@
             document.getElementById('close-tab-settings-btn').onclick = () => { tabSettingsModal.style.display = 'none'; };
             document.getElementById('add-new-tab-btn').onclick = handleAddNewTab;
 
-            const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings/categories`);
-            onSnapshot(categoriesDocRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    currentCategories = docSnap.data().names;
-                } else {
-                    currentCategories = ['Bengkel', 'Projek', 'Drive', 'AI'];
-                    setDoc(categoriesDocRef, { names: currentCategories });
-                }
-                const isAdmin = auth.currentUser?.uid === ADMIN_UID;
-                generateTabsAndContent(currentCategories, isAdmin);
-            });
-
             onAuthStateChanged(auth, user => {
-                const isAdmin = user?.uid === ADMIN_UID;
-                updateUIVisibility(isAdmin);
-                if (!user) {
-                    signInAnonymously(auth).catch(err => console.error("Anonymous sign-in failed", err));
+                if (user) {
+                    const isAdmin = user.uid === ADMIN_UID;
+                    updateUIVisibility(isAdmin);
+
+                    const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
+                    onSnapshot(categoriesDocRef, (docSnap) => {
+                        if (docSnap.exists()) {
+                            currentCategories = docSnap.data().names;
+                        } else {
+                            currentCategories = ['Bengkel', 'Projek', 'Drive', 'AI'];
+                            if (isAdmin) {
+                                setDoc(categoriesDocRef, { names: currentCategories });
+                            }
+                        }
+                        generateTabsAndContent(currentCategories, isAdmin);
+                    }, error => {
+                        console.error("Error getting categories:", error);
+                        showMessage(`Gagal memuatkan data tab. Ralat: ${error.message}`);
+                    });
+                } else {
+                    signInAnonymously(auth).catch(err => {
+                        console.error("Anonymous sign-in failed", err);
+                        showMessage(`Gagal menyambung ke servis. Ralat: ${err.message}`);
+                    });
                 }
             });
         }

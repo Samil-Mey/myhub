@@ -136,7 +136,7 @@
             padding: 10px; border-radius: 8px; background-color: var(--bg-color); margin-bottom: 10px;
         }
         .tab-setting-item .tab-name { flex-grow: 1; text-align: left; margin-left: 5px; }
-        .admin-only { display: none; }
+        .admin-controls { display: none; }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -148,8 +148,7 @@
 
     <div class="dashboard">
         <div class="top-controls">
-            <button id="admin-login-btn" class="icon-button" title="Log Masuk Admin">🔑</button>
-            <button id="logout-btn" class="icon-button admin-only" title="Log Keluar">🚪</button>
+            <button id="admin-toggle-btn" class="icon-button" title="Mod Admin">🔑</button>
             <button id="theme-toggle" class="icon-button" title="Tukar Tema">☀️</button>
         </div>
         <div class="logo-container">
@@ -165,20 +164,19 @@
         <div id="tab-content-container"></div>
 
         <footer class="footer">
-            <button id="tab-settings-btn" class="settings-btn admin-only">⚙️ Tetapan Tab</button>
+            <button id="tab-settings-btn" class="settings-btn admin-controls">⚙️ Tetapan Tab</button>
             <p class="footer-text">Abd. Shamil Ahmad Sukri || &copy;2025</p>
         </footer>
     </div>
     
     <div id="message-box" class="modal-overlay"><div class="modal-content"><p id="message-box-text"></p><div id="message-box-actions"></div></div></div>
-    <div id="login-modal" class="modal-overlay"><div class="modal-content"><h3>Log Masuk Admin</h3><div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;"><input type="email" id="email-input" class="form-input" placeholder="E-mel"><input type="password" id="password-input" class="form-input" placeholder="Kata Laluan"><div class="form-actions" style="margin-top: 10px;"><button type="button" class="form-button cancel-btn" id="login-cancel-btn">Batal</button><button type="button" class="form-button save-btn" id="login-submit-btn">Log Masuk</button></div></div></div></div>
     <div id="edit-modal" class="modal-overlay"><div class="modal-content"><h3>Sunting Pautan</h3><div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;"><input type="hidden" id="edit-id-input"><input type="text" id="edit-name-input" class="form-input" placeholder="Nama Pautan"><input type="url" id="edit-url-input" class="form-input" placeholder="URL Pautan"><div class="form-actions" style="margin-top: 10px;"><button type="button" class="form-button cancel-btn" id="edit-cancel-btn">Batal</button><button type="button" class="form-button save-btn" id="edit-save-btn">Simpan</button></div></div></div></div>
     <div id="tab-settings-modal" class="modal-overlay"><div class="modal-content"><h3>Urus Tab Anda</h3><ul id="tab-settings-list"></ul><div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;"><input type="text" id="new-tab-name-input" class="form-input" placeholder="Nama Tab Baharu"><button type="button" class="form-button save-btn" style="flex: 0 1 auto; margin-left: 10px;" id="add-new-tab-btn">Tambah</button></div><div class="form-actions" style="margin-top: 20px;"><button type="button" class="form-button cancel-btn" id="close-tab-settings-btn">Tutup</button></div></div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, getDocs, doc, deleteDoc, updateDoc, writeBatch, arrayUnion, arrayRemove, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyArk4ufQelk1dWqYK5FHi9_qSABHmeGe-E",
@@ -191,7 +189,7 @@
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'myhub-by-shamil-app';
         
-        const ADMIN_UID = 'LG3URVl9wKZ6Qdj4pqecKtJTx382'; 
+        const SAFE_KEY = '270603'; 
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -200,13 +198,13 @@
         const messageBox = document.getElementById('message-box');
         const messageBoxText = document.getElementById('message-box-text');
         const messageBoxActions = document.getElementById('message-box-actions');
-        const loginModal = document.getElementById('login-modal');
         const editModal = document.getElementById('edit-modal');
         const tabSettingsModal = document.getElementById('tab-settings-modal');
 
         let currentCategories = [];
         let activeTab = null;
         let unsubscribeCategories = null; 
+        let isAdminMode = false;
 
         function showMessage(text, type = 'alert') {
             return new Promise((resolve) => {
@@ -234,28 +232,29 @@
             });
         }
 
-        function updateUIVisibility(isAdmin) {
-            document.querySelectorAll('.admin-only').forEach(el => {
-                el.style.display = isAdmin ? 'flex' : 'none';
+        function updateUIVisibility() {
+            const adminToggleButton = document.getElementById('admin-toggle-btn');
+            document.querySelectorAll('.admin-controls').forEach(el => {
+                el.style.display = isAdminMode ? 'flex' : 'none';
             });
-            document.getElementById('admin-login-btn').style.display = isAdmin ? 'none' : 'flex';
-            
-            document.querySelectorAll('.item-actions').forEach(el => {
-                el.style.display = isAdmin ? 'flex' : 'none';
+             document.querySelectorAll('.item-actions').forEach(el => {
+                el.style.display = isAdminMode ? 'flex' : 'none';
             });
             document.querySelectorAll('.add-button-section').forEach(el => {
-                el.style.display = isAdmin ? 'block' : 'none';
+                el.style.display = isAdminMode ? 'block' : 'none';
             });
+            adminToggleButton.innerHTML = isAdminMode ? '🔒' : '🔑';
+            adminToggleButton.title = isAdminMode ? 'Kunci Mod Admin' : 'Buka Kunci Mod Admin';
         }
 
-        function generateTabsAndContent(categories, isAdmin) {
+        function generateTabsAndContent(categories) {
             const tabNavContainer = document.getElementById('tab-navigation');
             const tabContentContainer = document.getElementById('tab-content-container');
             tabNavContainer.innerHTML = '';
             tabContentContainer.innerHTML = '';
 
             if (categories.length === 0) {
-                tabContentContainer.innerHTML = `<p style="color: var(--subtitle-color);">Tiada tab. Admin perlu log masuk untuk menambah tab baharu.</p>`;
+                tabContentContainer.innerHTML = `<p style="color: var(--subtitle-color);">Tiada tab. Buka kunci mod admin untuk menambah tab baharu.</p>`;
                 return;
             }
 
@@ -275,7 +274,7 @@
                 contentDiv.className = 'tab-content';
                 contentDiv.style.display = category === activeTab ? 'block' : 'none';
                 contentDiv.innerHTML = `<div id="button-container-${category}" class="button-container"></div>
-                    <div class="add-button-section admin-only">
+                    <div class="add-button-section admin-controls">
                         <button class="add-button" id="add-btn-${category}">+ Tambah Pautan Baharu</button>
                         <div class="add-form" id="add-form-${category}">
                             <input type="text" id="name-input-${category}" class="form-input" placeholder="Nama Pautan">
@@ -289,7 +288,7 @@
                 tabContentContainer.appendChild(contentDiv);
                 setupLinkListeners(category);
             });
-            updateUIVisibility(isAdmin);
+            updateUIVisibility();
         }
 
         function setupThemeSwitcher() {
@@ -379,7 +378,7 @@
                     const linkItem = document.createElement('div');
                     linkItem.className = 'link-item';
                     linkItem.innerHTML = `<a href="${linkData.url}" target="_blank" rel="noopener noreferrer">${linkData.name}</a>
-                        <div class="item-actions admin-only">
+                        <div class="item-actions admin-controls">
                             <button class="action-btn edit-link-btn" title="Sunting">✏️</button>
                             <button class="action-btn delete-link-btn" title="Padam">🗑️</button>
                         </div>`;
@@ -387,7 +386,7 @@
                     linkItem.querySelector('.delete-link-btn').onclick = () => deleteLink(docSnapshot.id, linkData.name);
                     container.appendChild(linkItem);
                 });
-                updateUIVisibility(auth.currentUser?.uid === ADMIN_UID);
+                updateUIVisibility();
             });
 
             const addBtn = document.getElementById(`add-btn-${category}`);
@@ -507,17 +506,18 @@
             setupThemeSwitcher();
             setupCanvasAnimation();
             
-            document.getElementById('admin-login-btn').onclick = () => { loginModal.style.display = 'flex'; };
-            document.getElementById('login-cancel-btn').onclick = () => { loginModal.style.display = 'none'; };
-            document.getElementById('logout-btn').onclick = () => signOut(auth);
-            document.getElementById('login-submit-btn').onclick = async () => {
-                const email = document.getElementById('email-input').value;
-                const password = document.getElementById('password-input').value;
-                try {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    loginModal.style.display = 'none';
-                } catch (error) {
-                    showMessage("Log masuk gagal. Sila semak e-mel dan kata laluan.");
+            document.getElementById('admin-toggle-btn').onclick = () => {
+                if (isAdminMode) {
+                    isAdminMode = false;
+                    updateUIVisibility();
+                } else {
+                    const key = prompt("Sila masukkan Safe Key untuk membuka mod admin:");
+                    if (key === SAFE_KEY) {
+                        isAdminMode = true;
+                        updateUIVisibility();
+                    } else if (key) {
+                        alert("Safe Key salah!");
+                    }
                 }
             };
 
@@ -540,34 +540,30 @@
 
             onAuthStateChanged(auth, user => {
                 if (user) {
-                    const isAdmin = user.uid === ADMIN_UID;
-                    updateUIVisibility(isAdmin);
-
                     const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
                     if (unsubscribeCategories) unsubscribeCategories();
                     
                     unsubscribeCategories = onSnapshot(categoriesDocRef, (docSnap) => {
                         if (docSnap.exists()) {
                             currentCategories = docSnap.data().names;
-                            generateTabsAndContent(currentCategories, isAdmin);
                         } else {
                             currentCategories = [];
-                            if (isAdmin) {
-                                setDoc(categoriesDocRef, { names: ['Tab Pertama'] });
-                            }
-                            generateTabsAndContent(currentCategories, isAdmin);
                         }
+                        generateTabsAndContent(currentCategories);
                     }, error => {
                         console.error("Error getting categories:", error);
                         showMessage(`Gagal memuatkan data tab. Ralat: ${error.message}`);
                     });
-                } else {
-                    signInAnonymously(auth).catch(err => {
-                        console.error("Anonymous sign-in failed", err);
-                        showMessage(`Gagal menyambung ke servis. Ralat: ${err.message}`);
-                    });
                 }
             });
+
+            // Ensure anonymous sign-in happens first
+            if (!auth.currentUser) {
+                signInAnonymously(auth).catch(err => {
+                    console.error("Anonymous sign-in failed", err);
+                    showMessage(`Gagal menyambung ke servis. Ralat: ${err.message}`);
+                });
+            }
         }
 
         main();

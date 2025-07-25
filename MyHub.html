@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyHUB - A.Shamil (Live Preview)</title>
+    <style>
+        /* --- Root Variables for Theming --- */
+        :root {
+            --bg-color: #1a202c;
+            --card-bg-color: #2d3748;
+            --text-color: #e2e8f0;
+            --subtitle-color: #a0aec0;
+            --border-color: #4a5568;
+            --primary-accent: #4299e1;
+            --primary-accent-shadow: rgba(66, 153, 225, 0.2);
+            --link-bg: #1c1c1e;
+            --link-text: #ffdd57;
+            --link-hover-bg: #333333;
+            --link-hover-text: #ffffff;
+            --button-green: #38a169;
+            --button-grey: #718096;
+            --error-red: #e53e3e;
+            --icon-color: #a0aec0;
+            --icon-hover-color: #ffffff;
+            --canvas-particle-color: 'rgba(255, 255, 255, 0.5)';
+        }
+
+        body.light-theme {
+            --bg-color: #f7fafc;
+            --card-bg-color: #ffffff;
+            --text-color: #2d3748;
+            --subtitle-color: #718096;
+            --border-color: #cbd5e0;
+            --primary-accent: #3182ce;
+            --primary-accent-shadow: rgba(49, 130, 206, 0.2);
+            --link-bg: #edf2f7;
+            --link-text: #2b6cb0;
+            --link-hover-bg: #e2e8f0;
+            --link-hover-text: #1a202c;
+            --icon-color: #718096;
+            --icon-hover-color: #2d3748;
+            --canvas-particle-color: 'rgba(0, 0, 0, 0.5)';
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color); /* Fallback background */
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+            overflow-y: auto;
+        }
+
+        /* --- Canvas Background --- */
+        #background-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .dashboard {
+            text-align: center;
+            background-color: var(--card-bg-color);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- Theme Toggle --- */
+        .theme-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: 2px solid var(--border-color);
+            color: var(--subtitle-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover {
+            border-color: var(--primary-accent);
+            color: var(--primary-accent);
+        }
+
+        /* --- Logo & Title --- */
+        .logo-container { margin-bottom: 20px; }
+        .logo-svg { width: 60px; height: 60px; }
+        h1 {
+            font-family: 'Playfair Display', serif;
+            margin-top: 0;
+            margin-bottom: 0;
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+        .subtitle {
+            font-family: 'Lobster', cursive;
+            font-size: 24px;
+            font-weight: 400;
+            color: var(--subtitle-color);
+            margin-top: 5px;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+
+        /* --- Tab Navigation --- */
+        .tab-nav {
+            display: flex;
+            justify-content: center;
+            background-color: var(--bg-color);
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 25px;
+        }
+        .tab-link {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--subtitle-color);
+            background: none;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            flex: 1;
+        }
+        .tab-link:hover { background-color: var(--border-color); color: var(--text-color); }
+        .tab-link.active {
+            background-color: var(--primary-accent);
+            color: #ffffff;
+            box-shadow: 0 4px 12px var(--primary-accent-shadow);
+        }
+
+        /* --- Tab Content --- */
+        .tab-content { display: none; animation: fadeIn 0.5s; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .button-container { display: flex; flex-direction: column; gap: 15px; }
+        
+        .link-item {
+            display: flex;
+            align-items: center;
+            background: var(--link-bg);
+            border-radius: 12px;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+            word-wrap: break-word;
+        }
+        .link-item:hover {
+            transform: translateY(-2px);
+            background-color: var(--link-hover-bg);
+        }
+        .link-item a {
+            flex-grow: 1;
+            color: var(--link-text);
+            padding: 16px 20px;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: left;
+        }
+        .link-item:hover a { color: var(--link-hover-text); }
+
+        .item-actions { display: flex; padding-right: 10px; }
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--icon-color);
+            cursor: pointer;
+            font-size: 20px;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .action-btn:hover {
+            color: var(--icon-hover-color);
+            background-color: rgba(144, 144, 144, 0.2);
+        }
+        
+        /* --- Add New Button & Form --- */
+        .add-button-section { margin-top: 20px; }
+        .add-button {
+            background: none;
+            border: 2px dashed var(--border-color);
+            color: var(--subtitle-color);
+            padding: 12px;
+            width: 100%;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .add-button:hover { background-color: var(--border-color); color: var(--text-color); border-style: solid; }
+        .add-form {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: var(--bg-color);
+            border-radius: 12px;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .form-actions { display: flex; gap: 10px; }
+        .form-button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .save-btn { background-color: var(--button-green); color: white; }
+        .cancel-btn { background-color: var(--button-grey); color: white; }
+
+        /* --- Footer & Tab Settings Button --- */
+        .footer {
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .footer-text { font-size: 12px; color: var(--subtitle-color); }
+        .settings-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--subtitle-color);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .settings-btn:hover {
+            background-color: var(--border-color);
+            color: var(--text-color);
+        }
+        
+        /* --- Modals --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none; align-items: center; justify-content: center;
+            z-index: 2000; animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background: var(--card-bg-color);
+            padding: 30px; border-radius: 12px; width: 90%; max-width: 400px;
+        }
+        .modal-content h3 { margin-top: 0; color: var(--text-color); }
+
+        /* --- Tab Management Modal --- */
+        #tab-settings-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .tab-setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: var(--bg-color);
+            margin-bottom: 10px;
+        }
+        .tab-setting-item .tab-name {
+            flex-grow: 1;
+            text-align: left;
+            margin-left: 5px;
+        }
+
+    </style>
+    <!-- Google Fonts import -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Lobster&family=Montserrat:wght@600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    
+    <!-- Canvas for animated background -->
+    <canvas id="background-canvas"></canvas>
+
+    <div class="dashboard">
+        <button id="theme-toggle" class="theme-toggle" title="Tukar Tema">☀️</button>
+        <!-- Logo and Title Section -->
+        <div class="logo-container">
+            <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 15 L85 85 L15 85 Z" fill="#1c1c1e"/>
+                <path d="M30 75 C 40 50, 60 50, 70 25" stroke-width="12" stroke="#ffdd57" fill="none" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <h1>MyHUB</h1>
+        <p class="subtitle">A.Shamil©</p>
+
+        <!-- Tab Navigation (will be generated by JS) -->
+        <div class="tab-nav" id="tab-navigation"></div>
+
+        <!-- Tab Content Panels (will be generated by JS) -->
+        <div id="tab-content-container"></div>
+
+        <!-- Footer Section -->
+        <footer class="footer">
+            <button id="tab-settings-btn" class="settings-btn">⚙️ Tetapan Tab</button>
+            <p class="footer-text">Abd. Shamil Ahmad Sukri || &copy;2025</p>
+        </footer>
+    </div>
+    
+    <!-- Message Box -->
+    <div id="message-box" class="modal-overlay">
+        <div class="modal-content">
+            <p id="message-box-text"></p>
+            <div id="message-box-actions" class="message-box-actions"></div>
+        </div>
+    </div>
+
+    <!-- Edit Link Modal -->
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Sunting Pautan</h3>
+            <div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;">
+                <input type="hidden" id="edit-id-input">
+                <input type="text" id="edit-name-input" class="form-input" placeholder="Nama Pautan">
+                <input type="url" id="edit-url-input" class="form-input" placeholder="URL Pautan">
+                <div class="form-actions" style="margin-top: 10px;">
+                    <button type="button" class="form-button cancel-btn" id="edit-cancel-btn">Batal</button>
+                    <button type="button" class="form-button save-btn" id="edit-save-btn">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Settings Modal -->
+    <div id="tab-settings-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Urus Tab Anda</h3>
+            <ul id="tab-settings-list">
+                <!-- Tab items will be injected here by JS -->
+            </ul>
+            <div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;">
+                <input type="text" id="new-tab-name-input" class="form-input" placeholder="Nama Tab Baharu">
+                <button type="button" class="form-button save-btn" style="flex: 0 1 auto; margin-left: 10px;" id="add-new-tab-btn">Tambah</button>
+            </div>
+             <div class="form-actions" style="margin-top: 20px;">
+                <button type="button" class="form-button cancel-btn" id="close-tab-settings-btn">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // Import necessary Firebase functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, getDocs, doc, deleteDoc, updateDoc, writeBatch, arrayUnion, arrayRemove, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // --- Firebase and App Configuration ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyArk4ufQelk1dWqYK5FHi9_qSABHmeGe-E",
+            authDomain: "myhub-by-shamil.firebaseapp.com",
+            projectId: "myhub-by-shamil",
+            storageBucket: "myhub-by-shamil.appspot.com",
+            messagingSenderId: "524042894588",
+            appId: "1:524042894588:web:ff8c0e1d45491055c76b79",
+            measurementId: "G-L90LS8CXJX"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'myhub-by-shamil-app';
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        // --- DOM Elements ---
+        const messageBox = document.getElementById('message-box');
+        const messageBoxText = document.getElementById('message-box-text');
+        const messageBoxActions = document.getElementById('message-box-actions');
+        const editModal = document.getElementById('edit-modal');
+        const editIdInput = document.getElementById('edit-id-input');
+        const editNameInput = document.getElementById('edit-name-input');
+        const editUrlInput = document.getElementById('edit-url-input');
+        const tabSettingsModal = document.getElementById('tab-settings-modal');
+
+        // --- Global State ---
+        let currentCategories = [];
+        let activeTab = null;
+        let isAppInitialized = false;
+
+        // --- Custom Message Box ---
+        function showMessage(text, type = 'alert') {
+            return new Promise((resolve) => {
+                messageBoxText.textContent = text;
+                messageBoxActions.innerHTML = '';
+                if (type === 'confirm') {
+                    const confirmBtn = document.createElement('button');
+                    confirmBtn.textContent = 'OK';
+                    confirmBtn.className = 'form-button save-btn';
+                    confirmBtn.onclick = () => { messageBox.style.display = 'none'; resolve(true); };
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.textContent = 'Batal';
+                    cancelBtn.className = 'form-button cancel-btn';
+                    cancelBtn.onclick = () => { messageBox.style.display = 'none'; resolve(false); };
+                    messageBoxActions.appendChild(cancelBtn);
+                    messageBoxActions.appendChild(confirmBtn);
+                } else {
+                    const okBtn = document.createElement('button');
+                    okBtn.textContent = 'OK';
+                    okBtn.className = 'form-button save-btn';
+                    okBtn.onclick = () => { messageBox.style.display = 'none'; resolve(true); };
+                    messageBoxActions.appendChild(okBtn);
+                }
+                messageBox.style.display = 'flex';
+            });
+        }
+
+        // --- UI Generation ---
+        function generateTabsAndContent(categories) {
+            const tabNavContainer = document.getElementById('tab-navigation');
+            const tabContentContainer = document.getElementById('tab-content-container');
+            tabNavContainer.innerHTML = '';
+            tabContentContainer.innerHTML = '';
+
+            if (categories.length === 0) {
+                tabContentContainer.innerHTML = `<p style="color: var(--subtitle-color);">Tiada tab. Sila tambah tab baharu melalui Tetapan Tab.</p>`;
+                return;
+            }
+
+            if (!activeTab || !categories.includes(activeTab)) {
+                activeTab = categories[0];
+            }
+
+            categories.forEach(category => {
+                const tabButton = document.createElement('button');
+                tabButton.className = `tab-link ${category === activeTab ? 'active' : ''}`;
+                tabButton.textContent = category;
+                tabButton.onclick = (e) => openTab(e, category);
+                tabNavContainer.appendChild(tabButton);
+
+                const contentDiv = document.createElement('div');
+                contentDiv.id = category;
+                contentDiv.className = 'tab-content';
+                contentDiv.style.display = category === activeTab ? 'block' : 'none';
+                contentDiv.innerHTML = `<div id="button-container-${category}" class="button-container"></div>
+                    <div class="add-button-section">
+                        <button class="add-button" id="add-btn-${category}">+ Tambah Pautan Baharu</button>
+                        <div class="add-form" id="add-form-${category}">
+                            <input type="text" id="name-input-${category}" class="form-input" placeholder="Nama Pautan">
+                            <input type="url" id="url-input-${category}" class="form-input" placeholder="URL Pautan">
+                            <div class="form-actions">
+                                <button class="form-button cancel-btn" id="cancel-btn-${category}">Batal</button>
+                                <button class="form-button save-btn" id="save-btn-${category}">Simpan</button>
+                            </div>
+                        </div>
+                    </div>`;
+                tabContentContainer.appendChild(contentDiv);
+                setupLinkListeners(category, auth.currentUser.uid);
+            });
+        }
+
+        // --- Theme & Canvas ---
+        function setupThemeSwitcher() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const currentTheme = localStorage.getItem('theme') || 'dark';
+            if (currentTheme === 'light') {
+                document.body.classList.add('light-theme');
+                themeToggle.textContent = '🌙';
+            }
+            themeToggle.onclick = () => {
+                document.body.classList.toggle('light-theme');
+                themeToggle.textContent = document.body.classList.contains('light-theme') ? '🌙' : '☀️';
+                localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+            };
+        }
+        function setupCanvasAnimation() {
+            const canvas = document.getElementById('background-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let particlesArray;
+
+            function setCanvasSize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 2 + 1;
+                    this.speedX = Math.random() * 1.5 - 0.75;
+                    this.speedY = Math.random() * 1.5 - 0.75;
+                }
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+
+                    if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
+                    if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+                }
+                draw() {
+                    const isLightTheme = document.body.classList.contains('light-theme');
+                    ctx.fillStyle = isLightTheme ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)';
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            function init() {
+                setCanvasSize();
+                particlesArray = [];
+                const numberOfParticles = (canvas.width * canvas.height) / 9000;
+                for (let i = 0; i < numberOfParticles; i++) {
+                    particlesArray.push(new Particle());
+                }
+            }
+
+            function animate() {
+                if (!ctx) return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let i = 0; i < particlesArray.length; i++) {
+                    particlesArray[i].update();
+                    particlesArray[i].draw();
+                }
+                requestAnimationFrame(animate);
+            }
+
+            init();
+            animate();
+            window.addEventListener('resize', init);
+        }
+
+        // --- Data & Link Management ---
+        function setupLinkListeners(category, userId) {
+            const linksCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/links`);
+            const q = query(linksCollectionRef, where("category", "==", category));
+
+            onSnapshot(q, (querySnapshot) => {
+                const container = document.getElementById(`button-container-${category}`);
+                if (!container) return;
+                container.innerHTML = '';
+                const docs = querySnapshot.docs.sort((a, b) => (a.data().createdAt?.toMillis() || 0) - (b.data().createdAt?.toMillis() || 0));
+                docs.forEach((docSnapshot) => {
+                    const linkData = docSnapshot.data();
+                    const linkItem = document.createElement('div');
+                    linkItem.className = 'link-item';
+                    linkItem.innerHTML = `<a href="${linkData.url}" target="_blank" rel="noopener noreferrer">${linkData.name}</a>
+                        <div class="item-actions">
+                            <button class="action-btn edit-link-btn" title="Sunting">✏️</button>
+                            <button class="action-btn delete-link-btn" title="Padam">🗑️</button>
+                        </div>`;
+                    linkItem.querySelector('.edit-link-btn').onclick = () => openEditModal(docSnapshot.id, linkData.name, linkData.url);
+                    linkItem.querySelector('.delete-link-btn').onclick = () => deleteLink(docSnapshot.id, linkData.name);
+                    container.appendChild(linkItem);
+                });
+            });
+
+            const addBtn = document.getElementById(`add-btn-${category}`);
+            const addForm = document.getElementById(`add-form-${category}`);
+            if (!addBtn) return;
+            addBtn.onclick = () => { addForm.style.display = 'flex'; addBtn.style.display = 'none'; };
+            document.getElementById(`cancel-btn-${category}`).onclick = () => { addForm.style.display = 'none'; addBtn.style.display = 'block'; };
+            document.getElementById(`save-btn-${category}`).onclick = async () => {
+                const name = document.getElementById(`name-input-${category}`).value.trim();
+                const url = document.getElementById(`url-input-${category}`).value.trim();
+                if (name && url) {
+                    try {
+                        await addDoc(linksCollectionRef, { name, url, category, userId, createdAt: serverTimestamp() });
+                        document.getElementById(`cancel-btn-${category}`).click();
+                    } catch (e) { showMessage("Gagal menyimpan pautan."); }
+                } else { showMessage("Sila isi nama dan URL."); }
+            };
+        }
+        async function deleteLink(docId, linkName) {
+            const confirmed = await showMessage(`Anda pasti mahu padam pautan "${linkName}"?`, 'confirm');
+            if (confirmed) {
+                try {
+                    await deleteDoc(doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/links`, docId));
+                } catch (error) { showMessage("Gagal memadam pautan."); }
+            }
+        }
+        function openEditModal(docId, name, url) {
+            editIdInput.value = docId;
+            editNameInput.value = name;
+            editUrlInput.value = url;
+            editModal.style.display = 'flex';
+        }
+
+        // --- Tab Management ---
+        function populateTabManagementModal(categories) {
+            const list = document.getElementById('tab-settings-list');
+            list.innerHTML = '';
+            categories.forEach(name => {
+                const item = document.createElement('li');
+                item.className = 'tab-setting-item';
+                item.innerHTML = `<span class="tab-name">${name}</span>
+                    <div class="item-actions">
+                        <button class="action-btn rename-tab-btn" title="Tukar Nama">✏️</button>
+                        <button class="action-btn delete-tab-btn" title="Padam">🗑️</button>
+                    </div>`;
+                item.querySelector('.rename-tab-btn').onclick = () => handleRenameTab(name, item);
+                item.querySelector('.delete-tab-btn').onclick = () => handleDeleteTab(name);
+                list.appendChild(item);
+            });
+        }
+        function handleRenameTab(oldName, itemElement) {
+            const nameSpan = itemElement.querySelector('.tab-name');
+            nameSpan.innerHTML = `<input type="text" class="form-input" value="${oldName}" style="flex-grow: 1; margin-right: 5px;"/>
+                <button class="action-btn save-rename-btn">✔️</button>
+                <button class="action-btn cancel-rename-btn">❌</button>`;
+            
+            const input = nameSpan.querySelector('input');
+            input.focus();
+
+            nameSpan.querySelector('.save-rename-btn').onclick = async () => {
+                const newName = input.value.trim();
+                if (newName && newName !== oldName && !currentCategories.includes(newName)) {
+                    const categoriesDocRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/settings/categories`);
+                    const linksCollectionRef = collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/links`);
+                    const q = query(linksCollectionRef, where("category", "==", oldName));
+                    
+                    const batch = writeBatch(db);
+                    const querySnapshot = await getDocs(q);
+                    querySnapshot.forEach(doc => {
+                        batch.update(doc.ref, { category: newName });
+                    });
+                    
+                    const newCategories = currentCategories.map(c => c === oldName ? newName : c);
+                    batch.update(categoriesDocRef, { names: newCategories });
+                    
+                    await batch.commit();
+                    activeTab = newName; // Switch active tab to the new name
+                } else {
+                    populateTabManagementModal(currentCategories); // Revert UI
+                }
+            };
+            nameSpan.querySelector('.cancel-rename-btn').onclick = () => {
+                populateTabManagementModal(currentCategories); // Revert UI
+            };
+        }
+        async function handleDeleteTab(tabName) {
+            const confirmed = await showMessage(`Anda pasti mahu padam tab "${tabName}"? SEMUA pautan di dalamnya akan dipadam secara kekal.`, 'confirm');
+            if (confirmed) {
+                const categoriesDocRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/settings/categories`);
+                const linksCollectionRef = collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/links`);
+                const q = query(linksCollectionRef, where("category", "==", tabName));
+
+                const batch = writeBatch(db);
+                const querySnapshot = await getDocs(q);
+                querySnapshot.forEach(doc => batch.delete(doc.ref));
+                
+                batch.update(categoriesDocRef, { names: arrayRemove(tabName) });
+
+                await batch.commit();
+            }
+        }
+        async function handleAddNewTab() {
+            const input = document.getElementById('new-tab-name-input');
+            const newName = input.value.trim();
+            if (newName && !currentCategories.includes(newName)) {
+                const categoriesDocRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/settings/categories`);
+                await updateDoc(categoriesDocRef, { names: arrayUnion(newName) });
+                input.value = '';
+            } else if (currentCategories.includes(newName)) {
+                showMessage(`Tab "${newName}" sudah wujud.`);
+            }
+        }
+
+        async function seedInitialLinksIfNeeded(userId) {
+            const linksCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/links`);
+            const initialQuery = await getDocs(linksCollectionRef);
+
+            if (initialQuery.empty) {
+                console.log("Seeding initial links for new user...");
+                const initialLinks = [
+                    { name: '# NotebookLM', url: 'https://samil-mey.github.io/NLM4TEACHERS/', category: 'Bengkel' },
+                    { name: 'Kubeez Calc', url: 'https://samil-mey.github.io/ADV-cal25/', category: 'Projek' },
+                    { name: 'AKAR ILMU', url: 'https://samil-mey.github.io/akar-ilmu25v2/', category: 'Projek' },
+                    { name: 'Folder Projek', url: 'https://drive.google.com/drive/folders/1KrqaLWa16sXkfqTRauU1WPE4HKXwLqzM?usp=sharing', category: 'Drive' },
+                    { name: 'Contoh Pautan AI', url: 'https://chatgpt.com', category: 'AI' }
+                ];
+                const batch = writeBatch(db);
+                initialLinks.forEach(link => {
+                    const newLinkRef = doc(linksCollectionRef);
+                    batch.set(newLinkRef, { ...link, userId, createdAt: serverTimestamp() });
+                });
+                await batch.commit();
+            }
+        }
+        
+        // --- Global Tab Function ---
+        window.openTab = function(evt, tabName) {
+            activeTab = tabName;
+            document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
+            document.querySelectorAll('.tab-link').forEach(tl => tl.classList.remove('active'));
+            document.getElementById(tabName).style.display = 'block';
+            evt.currentTarget.classList.add('active');
+        }
+
+        // --- APP INITIALIZATION ---
+        function initializeUI() {
+            setupThemeSwitcher();
+            setupCanvasAnimation();
+            document.getElementById('edit-cancel-btn').onclick = () => { editModal.style.display = 'none'; };
+            document.getElementById('edit-save-btn').onclick = async () => {
+                const docId = editIdInput.value, newName = editNameInput.value.trim(), newUrl = editUrlInput.value.trim();
+                if (docId && newName && newUrl) {
+                    const docRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/links`, docId);
+                    await updateDoc(docRef, { name: newName, url: newUrl });
+                    editModal.style.display = 'none';
+                } else { showMessage("Sila isi nama dan URL."); }
+            };
+            document.getElementById('tab-settings-btn').onclick = () => { 
+                populateTabManagementModal(currentCategories);
+                tabSettingsModal.style.display = 'flex';
+            };
+            document.getElementById('close-tab-settings-btn').onclick = () => { tabSettingsModal.style.display = 'none'; };
+            document.getElementById('add-new-tab-btn').onclick = handleAddNewTab;
+        }
+
+        // --- AUTHENTICATION (Simplified, based on old working code) ---
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                // User is signed in.
+                console.log("User authenticated with UID:", user.uid);
+
+                // Initialize UI only once
+                if (!isAppInitialized) {
+                    initializeUI();
+                    isAppInitialized = true;
+                }
+
+                // Start listening for categories and data
+                const categoriesDocRef = doc(db, `artifacts/${appId}/users/${user.uid}/settings/categories`);
+                onSnapshot(categoriesDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        currentCategories = docSnap.data().names;
+                        generateTabsAndContent(currentCategories);
+                    } else {
+                        const initialCategories = ['Bengkel', 'Projek', 'Drive', 'AI'];
+                        setDoc(categoriesDocRef, { names: initialCategories })
+                            .then(() => seedInitialLinksIfNeeded(user.uid));
+                    }
+                });
+
+            } else {
+                // User is signed out. Try to sign in anonymously.
+                signInAnonymously(auth).catch(error => {
+                    console.error("Anonymous sign-in failed:", error);
+                    showMessage(`Gagal memulakan sesi pengesahan. Ralat: ${error.message}`);
+                });
+            }
+        });
+
+    </script>
+
+</body>
+</html>

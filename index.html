@@ -5,305 +5,138 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyHUB - A.Shamil</title>
     <style>
-        /* --- Root Variables for Theming --- */
         :root {
-            --bg-color: #1a202c;
-            --card-bg-color: #2d3748;
-            --text-color: #e2e8f0;
-            --subtitle-color: #a0aec0;
-            --border-color: #4a5568;
-            --primary-accent: #4299e1;
-            --primary-accent-shadow: rgba(66, 153, 225, 0.2);
-            --link-bg: #1c1c1e;
-            --link-text: #ffdd57;
-            --link-hover-bg: #333333;
-            --link-hover-text: #ffffff;
-            --button-green: #38a169;
-            --button-grey: #718096;
-            --error-red: #e53e3e;
-            --icon-color: #a0aec0;
-            --icon-hover-color: #ffffff;
+            --bg-color: #1a202c; --card-bg-color: #2d3748; --text-color: #e2e8f0;
+            --subtitle-color: #a0aec0; --border-color: #4a5568; --primary-accent: #4299e1;
+            --primary-accent-shadow: rgba(66, 153, 225, 0.2); --link-bg: #1c1c1e;
+            --link-text: #ffdd57; --link-hover-bg: #333333; --link-hover-text: #ffffff;
+            --button-green: #38a169; --button-grey: #718096; --error-red: #e53e3e;
+            --icon-color: #a0aec0; --icon-hover-color: #ffffff;
         }
-
         body.light-theme {
-            --bg-color: #f7fafc;
-            --card-bg-color: #ffffff;
-            --text-color: #2d3748;
-            --subtitle-color: #718096;
-            --border-color: #cbd5e0;
-            --primary-accent: #3182ce;
-            --primary-accent-shadow: rgba(49, 130, 206, 0.2);
-            --link-bg: #edf2f7;
-            --link-text: #2b6cb0;
-            --link-hover-bg: #e2e8f0;
-            --link-hover-text: #1a202c;
-            --icon-color: #718096;
-            --icon-hover-color: #2d3748;
+            --bg-color: #f7fafc; --card-bg-color: #ffffff; --text-color: #2d3748;
+            --subtitle-color: #718096; --border-color: #cbd5e0; --primary-accent: #3182ce;
+            --primary-accent-shadow: rgba(49, 130, 206, 0.2); --link-bg: #edf2f7;
+            --link-text: #2b6cb0; --link-hover-bg: #e2e8f0; --link-hover-text: #1a202c;
+            --icon-color: #718096; --icon-hover-color: #2d3748;
         }
-
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            margin: 0;
-            padding: 40px 20px;
-            box-sizing: border-box;
-            transition: background-color 0.3s, color 0.3s;
-            overflow-y: auto;
+            background-color: var(--bg-color); color: var(--text-color); display: flex;
+            justify-content: center; align-items: flex-start; min-height: 100vh;
+            margin: 0; padding: 40px 20px; box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s; overflow-y: auto;
         }
-
-        #background-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
-
+        #background-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
         .dashboard {
-            text-align: center;
-            background-color: var(--card-bg-color);
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 480px;
-            position: relative;
-            z-index: 1;
+            text-align: center; background-color: var(--card-bg-color); padding: 40px;
+            border-radius: 16px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            width: 100%; max-width: 480px; position: relative; z-index: 1;
         }
-
-        .top-controls {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            display: flex;
-            gap: 10px;
-        }
+        .top-controls { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
         .icon-button {
-            background: none;
-            border: 2px solid var(--border-color);
-            color: var(--subtitle-color);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
+            background: none; border: 2px solid var(--border-color); color: var(--subtitle-color);
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px;
+            display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;
         }
-        .icon-button:hover {
-            border-color: var(--primary-accent);
-            color: var(--primary-accent);
-        }
-
+        .icon-button:hover { border-color: var(--primary-accent); color: var(--primary-accent); }
         .logo-container { margin-bottom: 20px; }
         .logo-svg { width: 60px; height: 60px; }
         h1 {
-            font-family: 'Playfair Display', serif;
-            margin-top: 0;
-            margin-bottom: 0;
-            font-size: 42px;
-            font-weight: 700;
-            color: var(--text-color);
+            font-family: 'Playfair Display', serif; margin-top: 0; margin-bottom: 0;
+            font-size: 42px; font-weight: 700; color: var(--text-color);
         }
         .subtitle {
-            font-family: 'Lobster', cursive;
-            font-size: 24px;
-            font-weight: 400;
-            color: var(--subtitle-color);
-            margin-top: 5px;
-            margin-bottom: 30px;
-            letter-spacing: 1px;
+            font-family: 'Lobster', cursive; font-size: 24px; font-weight: 400;
+            color: var(--subtitle-color); margin-top: 5px; margin-bottom: 30px; letter-spacing: 1px;
         }
-
         .tab-nav {
-            display: flex;
-            justify-content: center;
-            background-color: var(--bg-color);
-            border-radius: 12px;
-            padding: 5px;
-            margin-bottom: 25px;
+            display: flex; justify-content: center; background-color: var(--bg-color);
+            border-radius: 12px; padding: 5px; margin-bottom: 25px;
         }
         .tab-link {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--subtitle-color);
-            background: none;
-            border: none;
-            padding: 10px 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 8px;
-            flex: 1;
+            font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 14px;
+            color: var(--subtitle-color); background: none; border: none; padding: 10px 15px;
+            cursor: pointer; transition: all 0.3s ease; border-radius: 8px; flex: 1;
         }
         .tab-link:hover { background-color: var(--border-color); color: var(--text-color); }
         .tab-link.active {
-            background-color: var(--primary-accent);
-            color: #ffffff;
+            background-color: var(--primary-accent); color: #ffffff;
             box-shadow: 0 4px 12px var(--primary-accent-shadow);
         }
-
         .tab-content { display: none; animation: fadeIn 0.5s; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .button-container { display: flex; flex-direction: column; gap: 15px; }
-        
         .link-item {
-            display: flex;
-            align-items: center;
-            background: var(--link-bg);
-            border-radius: 12px;
-            transition: transform 0.2s ease, background-color 0.2s ease;
+            display: flex; align-items: center; background: var(--link-bg);
+            border-radius: 12px; transition: transform 0.2s ease, background-color 0.2s ease;
             word-wrap: break-word;
         }
-        .link-item:hover {
-            transform: translateY(-2px);
-            background-color: var(--link-hover-bg);
-        }
+        .link-item:hover { transform: translateY(-2px); background-color: var(--link-hover-bg); }
         .link-item a {
-            flex-grow: 1;
-            color: var(--link-text);
-            padding: 16px 20px;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: 600;
-            text-align: left;
+            flex-grow: 1; color: var(--link-text); padding: 16px 20px; text-decoration: none;
+            font-size: 16px; font-weight: 600; text-align: left;
         }
         .link-item:hover a { color: var(--link-hover-text); }
-
         .item-actions { display: flex; padding-right: 10px; }
         .action-btn {
-            background: none;
-            border: none;
-            color: var(--icon-color);
-            cursor: pointer;
-            font-size: 20px;
-            padding: 8px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s, color 0.2s;
+            background: none; border: none; color: var(--icon-color); cursor: pointer;
+            font-size: 20px; padding: 8px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; transition: background-color 0.2s, color 0.2s;
         }
-        .action-btn:hover {
-            color: var(--icon-hover-color);
-            background-color: rgba(144, 144, 144, 0.2);
-        }
-        
+        .action-btn:hover { color: var(--icon-hover-color); background-color: rgba(144, 144, 144, 0.2); }
         .add-button-section { margin-top: 20px; }
         .add-button {
-            background: none;
-            border: 2px dashed var(--border-color);
-            color: var(--subtitle-color);
-            padding: 12px;
-            width: 100%;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            background: none; border: 2px dashed var(--border-color); color: var(--subtitle-color);
+            padding: 12px; width: 100%; border-radius: 12px; cursor: pointer;
+            font-weight: 600; transition: all 0.3s ease;
         }
         .add-button:hover { background-color: var(--border-color); color: var(--text-color); border-style: solid; }
         .add-form {
-            display: none;
-            margin-top: 20px;
-            padding: 20px;
-            background-color: var(--bg-color);
-            border-radius: 12px;
-            flex-direction: column;
-            gap: 15px;
+            display: none; margin-top: 20px; padding: 20px; background-color: var(--bg-color);
+            border-radius: 12px; flex-direction: column; gap: 15px;
         }
         .form-input {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--card-bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-color);
-            font-size: 14px;
-            box-sizing: border-box;
+            width: 100%; padding: 12px; background-color: var(--card-bg-color);
+            border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color);
+            font-size: 14px; box-sizing: border-box;
         }
         .form-actions { display: flex; gap: 10px; }
         .form-button {
-            flex: 1;
-            padding: 10px;
-            border-radius: 8px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
+            flex: 1; padding: 10px; border-radius: 8px; border: none;
+            font-weight: 600; cursor: pointer;
         }
         .save-btn { background-color: var(--button-green); color: white; }
         .cancel-btn { background-color: var(--button-grey); color: white; }
-
         .footer {
-            margin-top: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
+            margin-top: 40px; display: flex; flex-direction: column;
+            align-items: center; gap: 15px;
         }
         .footer-text { font-size: 12px; color: var(--subtitle-color); }
         .settings-btn {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--subtitle-color);
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            background: none; border: 1px solid var(--border-color); color: var(--subtitle-color);
+            padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;
         }
-        .settings-btn:hover {
-            background-color: var(--border-color);
-            color: var(--text-color);
-        }
-        
+        .settings-btn:hover { background-color: var(--border-color); color: var(--text-color); }
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            display: none; align-items: center; justify-content: center;
-            z-index: 2000; animation: fadeIn 0.3s;
+            background: rgba(0, 0, 0, 0.6); display: none; align-items: center;
+            justify-content: center; z-index: 2000; animation: fadeIn 0.3s;
         }
         .modal-content {
-            background: var(--card-bg-color);
-            padding: 30px; border-radius: 12px; width: 90%; max-width: 400px;
+            background: var(--card-bg-color); padding: 30px; border-radius: 12px;
+            width: 90%; max-width: 400px;
         }
         .modal-content h3 { margin-top: 0; color: var(--text-color); }
-
         #tab-settings-list {
-            list-style: none;
-            padding: 0;
-            margin: 20px 0;
-            max-height: 250px;
-            overflow-y: auto;
+            list-style: none; padding: 0; margin: 20px 0; max-height: 250px; overflow-y: auto;
         }
         .tab-setting-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            border-radius: 8px;
-            background-color: var(--bg-color);
-            margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px; border-radius: 8px; background-color: var(--bg-color); margin-bottom: 10px;
         }
-        .tab-setting-item .tab-name {
-            flex-grow: 1;
-            text-align: left;
-            margin-left: 5px;
-        }
-        
-        .admin-only {
-            display: none;
-        }
+        .tab-setting-item .tab-name { flex-grow: 1; text-align: left; margin-left: 5px; }
+        .admin-only { display: none; }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -337,55 +170,10 @@
         </footer>
     </div>
     
-    <div id="message-box" class="modal-overlay">
-        <div class="modal-content">
-            <p id="message-box-text"></p>
-            <div id="message-box-actions" class="message-box-actions"></div>
-        </div>
-    </div>
-
-    <div id="login-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>Log Masuk Admin</h3>
-            <div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;">
-                <input type="email" id="email-input" class="form-input" placeholder="E-mel">
-                <input type="password" id="password-input" class="form-input" placeholder="Kata Laluan">
-                <div class="form-actions" style="margin-top: 10px;">
-                    <button type="button" class="form-button cancel-btn" id="login-cancel-btn">Batal</button>
-                    <button type="button" class="form-button save-btn" id="login-submit-btn">Log Masuk</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="edit-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>Sunting Pautan</h3>
-            <div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;">
-                <input type="hidden" id="edit-id-input">
-                <input type="text" id="edit-name-input" class="form-input" placeholder="Nama Pautan">
-                <input type="url" id="edit-url-input" class="form-input" placeholder="URL Pautan">
-                <div class="form-actions" style="margin-top: 10px;">
-                    <button type="button" class="form-button cancel-btn" id="edit-cancel-btn">Batal</button>
-                    <button type="button" class="form-button save-btn" id="edit-save-btn">Simpan</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tab-settings-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>Urus Tab Anda</h3>
-            <ul id="tab-settings-list"></ul>
-            <div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;">
-                <input type="text" id="new-tab-name-input" class="form-input" placeholder="Nama Tab Baharu">
-                <button type="button" class="form-button save-btn" style="flex: 0 1 auto; margin-left: 10px;" id="add-new-tab-btn">Tambah</button>
-            </div>
-             <div class="form-actions" style="margin-top: 20px;">
-                <button type="button" class="form-button cancel-btn" id="close-tab-settings-btn">Tutup</button>
-            </div>
-        </div>
-    </div>
+    <div id="message-box" class="modal-overlay"><div class="modal-content"><p id="message-box-text"></p><div id="message-box-actions"></div></div></div>
+    <div id="login-modal" class="modal-overlay"><div class="modal-content"><h3>Log Masuk Admin</h3><div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;"><input type="email" id="email-input" class="form-input" placeholder="E-mel"><input type="password" id="password-input" class="form-input" placeholder="Kata Laluan"><div class="form-actions" style="margin-top: 10px;"><button type="button" class="form-button cancel-btn" id="login-cancel-btn">Batal</button><button type="button" class="form-button save-btn" id="login-submit-btn">Log Masuk</button></div></div></div></div>
+    <div id="edit-modal" class="modal-overlay"><div class="modal-content"><h3>Sunting Pautan</h3><div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;"><input type="hidden" id="edit-id-input"><input type="text" id="edit-name-input" class="form-input" placeholder="Nama Pautan"><input type="url" id="edit-url-input" class="form-input" placeholder="URL Pautan"><div class="form-actions" style="margin-top: 10px;"><button type="button" class="form-button cancel-btn" id="edit-cancel-btn">Batal</button><button type="button" class="form-button save-btn" id="edit-save-btn">Simpan</button></div></div></div></div>
+    <div id="tab-settings-modal" class="modal-overlay"><div class="modal-content"><h3>Urus Tab Anda</h3><ul id="tab-settings-list"></ul><div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;"><input type="text" id="new-tab-name-input" class="form-input" placeholder="Nama Tab Baharu"><button type="button" class="form-button save-btn" style="flex: 0 1 auto; margin-left: 10px;" id="add-new-tab-btn">Tambah</button></div><div class="form-actions" style="margin-top: 20px;"><button type="button" class="form-button cancel-btn" id="close-tab-settings-btn">Tutup</button></div></div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -418,6 +206,7 @@
 
         let currentCategories = [];
         let activeTab = null;
+        let unsubscribeCategories = null; // To prevent multiple listeners
 
         function showMessage(text, type = 'alert') {
             return new Promise((resolve) => {
@@ -732,4 +521,60 @@
                 }
             };
 
-            document.getElementById('edit-cancel-btn').onclick = () => { editModal.style.display = 'none';
+            document.getElementById('edit-cancel-btn').onclick = () => { editModal.style.display = 'none'; };
+            document.getElementById('edit-save-btn').onclick = async () => {
+                const docId = document.getElementById('edit-id-input').value;
+                const newName = document.getElementById('edit-name-input').value.trim();
+                const newUrl = document.getElementById('edit-url-input').value.trim();
+                if (docId && newName && newUrl) {
+                    await updateDoc(doc(db, `artifacts/${appId}/public/links`, docId), { name: newName, url: newUrl });
+                    editModal.style.display = 'none';
+                }
+            };
+            document.getElementById('tab-settings-btn').onclick = () => { 
+                populateTabManagementModal(currentCategories);
+                tabSettingsModal.style.display = 'flex';
+            };
+            document.getElementById('close-tab-settings-btn').onclick = () => { tabSettingsModal.style.display = 'none'; };
+            document.getElementById('add-new-tab-btn').onclick = handleAddNewTab;
+
+            onAuthStateChanged(auth, user => {
+                if (user) {
+                    // A user is now authenticated (either admin or anonymous).
+                    // It is now safe to attach listeners.
+                    const isAdmin = user.uid === ADMIN_UID;
+                    updateUIVisibility(isAdmin);
+
+                    const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
+                    if (unsubscribeCategories) unsubscribeCategories(); // Detach any old listener
+                    
+                    unsubscribeCategories = onSnapshot(categoriesDocRef, (docSnap) => {
+                        if (docSnap.exists()) {
+                            currentCategories = docSnap.data().names;
+                        } else {
+                            currentCategories = ['Bengkel', 'Projek', 'Drive', 'AI'];
+                            if (isAdmin) {
+                                setDoc(categoriesDocRef, { names: currentCategories });
+                            }
+                        }
+                        generateTabsAndContent(currentCategories, isAdmin);
+                    }, error => {
+                        console.error("Error getting categories:", error);
+                        showMessage(`Gagal memuatkan data tab. Ralat: ${error.message}`);
+                    });
+                } else {
+                    // This case is for when the user logs out.
+                    // We immediately sign in anonymously to restore public view.
+                    signInAnonymously(auth).catch(err => {
+                        console.error("Anonymous sign-in failed", err);
+                        showMessage(`Gagal menyambung ke servis. Ralat: ${err.message}`);
+                    });
+                }
+            });
+        }
+
+        main();
+    </script>
+
+</body>
+</html>

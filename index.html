@@ -503,6 +503,33 @@
             evt.currentTarget.classList.add('active');
         }
 
+        async function seedInitialData(isAdmin) {
+            const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
+            const linksCollectionRef = collection(db, `artifacts/${appId}/public/links`);
+            
+            const docSnap = await getDocs(query(linksCollectionRef));
+            if (docSnap.empty && isAdmin) {
+                console.log("Database is empty. Seeding initial data...");
+                const initialCategories = ['Bengkel', 'Projek', 'Drive', 'AI'];
+                await setDoc(categoriesDocRef, { names: initialCategories });
+
+                const initialLinks = [
+                    { name: '# NotebookLM', url: 'https://samil-mey.github.io/NLM4TEACHERS/', category: 'Bengkel' },
+                    { name: 'Kubeez Calc', url: 'https://samil-mey.github.io/ADV-cal25/', category: 'Projek' },
+                    { name: 'AKAR ILMU', url: 'https://samil-mey.github.io/akar-ilmu25v2/', category: 'Projek' },
+                    { name: 'Folder Projek', url: 'https://drive.google.com/drive/folders/1KrqaLWa16sXkfqTRauU1WPE4HKXwLqzM?usp=sharing', category: 'Drive' },
+                    { name: 'Contoh Pautan AI', url: 'https://chatgpt.com', category: 'AI' }
+                ];
+
+                const batch = writeBatch(db);
+                initialLinks.forEach(link => {
+                    const newLinkRef = doc(linksCollectionRef);
+                    batch.set(newLinkRef, { ...link, createdAt: serverTimestamp() });
+                });
+                await batch.commit();
+            }
+        }
+
         function main() {
             setupThemeSwitcher();
             setupCanvasAnimation();
@@ -540,22 +567,18 @@
 
             onAuthStateChanged(auth, user => {
                 if (user) {
-                    // A user is now authenticated (either admin or anonymous).
-                    // It is now safe to attach listeners.
                     const isAdmin = user.uid === ADMIN_UID;
                     updateUIVisibility(isAdmin);
+                    seedInitialData(isAdmin);
 
                     const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
-                    if (unsubscribeCategories) unsubscribeCategories(); // Detach any old listener
+                    if (unsubscribeCategories) unsubscribeCategories();
                     
                     unsubscribeCategories = onSnapshot(categoriesDocRef, (docSnap) => {
                         if (docSnap.exists()) {
                             currentCategories = docSnap.data().names;
                         } else {
-                            currentCategories = ['Bengkel', 'Projek', 'Drive', 'AI'];
-                            if (isAdmin) {
-                                setDoc(categoriesDocRef, { names: currentCategories });
-                            }
+                            currentCategories = []; // Will be created by seedInitialData if admin
                         }
                         generateTabsAndContent(currentCategories, isAdmin);
                     }, error => {
@@ -563,8 +586,6 @@
                         showMessage(`Gagal memuatkan data tab. Ralat: ${error.message}`);
                     });
                 } else {
-                    // This case is for when the user logs out.
-                    // We immediately sign in anonymously to restore public view.
                     signInAnonymously(auth).catch(err => {
                         console.error("Anonymous sign-in failed", err);
                         showMessage(`Gagal menyambung ke servis. Ralat: ${err.message}`);

@@ -258,6 +258,7 @@
                     </div>`;
                 tabContentContainer.appendChild(contentDiv);
             });
+            updateUIVisibility();
         }
 
         function setupThemeSwitcher() {
@@ -408,12 +409,12 @@
                     isAdminMode = false;
                     updateUIVisibility();
                 } else {
-                    const key = prompt("Sila masukkan Safe Key untuk membuka mod admin:");
+                    const key = prompt("PENTING DAN WAJIB !!!\n\nMasukkan Kod Akses. Sekiranya tiada, boleh cari Shamil");
                     if (key === SAFE_KEY) {
                         isAdminMode = true;
                         updateUIVisibility();
                     } else if (key) {
-                        alert("Safe Key salah!");
+                        showMessage("Kod Akses Salah!");
                     }
                 }
             };

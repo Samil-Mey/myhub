@@ -487,7 +487,6 @@
             const newName = input.value.trim();
             if (newName && !currentCategories.includes(newName)) {
                 const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
-                // Use setDoc with merge if the doc might not exist, otherwise updateDoc
                 await setDoc(categoriesDocRef, { names: arrayUnion(newName) }, { merge: true });
                 input.value = '';
             } else if (currentCategories.includes(newName)) {
@@ -541,8 +540,9 @@
 
             onAuthStateChanged(auth, user => {
                 if (user) {
+                    // A user is now authenticated. It is safe to attach listeners.
                     const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
-                    if (unsubscribeCategories) unsubscribeCategories();
+                    if (unsubscribeCategories) unsubscribeCategories(); // Detach any old listener
                     
                     unsubscribeCategories = onSnapshot(categoriesDocRef, (docSnap) => {
                         if (docSnap.exists()) {
@@ -558,6 +558,7 @@
                 }
             });
 
+            // Ensure anonymous sign-in happens first before any data is read.
             if (!auth.currentUser) {
                 signInAnonymously(auth).catch(err => {
                     console.error("Anonymous sign-in failed", err);

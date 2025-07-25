@@ -487,7 +487,8 @@
             const newName = input.value.trim();
             if (newName && !currentCategories.includes(newName)) {
                 const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
-                await updateDoc(categoriesDocRef, { names: arrayUnion(newName) });
+                // Use setDoc with merge if the doc might not exist, otherwise updateDoc
+                await setDoc(categoriesDocRef, { names: arrayUnion(newName) }, { merge: true });
                 input.value = '';
             } else if (currentCategories.includes(newName)) {
                 showMessage(`Tab "${newName}" sudah wujud.`);
@@ -557,7 +558,6 @@
                 }
             });
 
-            // Ensure anonymous sign-in happens first
             if (!auth.currentUser) {
                 signInAnonymously(auth).catch(err => {
                     console.error("Anonymous sign-in failed", err);

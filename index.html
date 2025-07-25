@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyHUB - A.Shamil (Live Preview)</title>
+    <title>MyHUB - A.Shamil</title>
     <style>
         /* --- Root Variables for Theming --- */
         :root {
@@ -23,7 +23,6 @@
             --error-red: #e53e3e;
             --icon-color: #a0aec0;
             --icon-hover-color: #ffffff;
-            --canvas-particle-color: 'rgba(255, 255, 255, 0.5)';
         }
 
         body.light-theme {
@@ -40,12 +39,11 @@
             --link-hover-text: #1a202c;
             --icon-color: #718096;
             --icon-hover-color: #2d3748;
-            --canvas-particle-color: 'rgba(0, 0, 0, 0.5)';
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg-color); /* Fallback background */
+            background-color: var(--bg-color);
             color: var(--text-color);
             display: flex;
             justify-content: center;
@@ -58,7 +56,6 @@
             overflow-y: auto;
         }
 
-        /* --- Canvas Background --- */
         #background-canvas {
             position: fixed;
             top: 0;
@@ -80,11 +77,14 @@
             z-index: 1;
         }
 
-        /* --- Theme Toggle --- */
-        .theme-toggle {
+        .top-controls {
             position: absolute;
             top: 15px;
             right: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .icon-button {
             background: none;
             border: 2px solid var(--border-color);
             color: var(--subtitle-color);
@@ -98,12 +98,11 @@
             justify-content: center;
             transition: all 0.3s ease;
         }
-        .theme-toggle:hover {
+        .icon-button:hover {
             border-color: var(--primary-accent);
             color: var(--primary-accent);
         }
 
-        /* --- Logo & Title --- */
         .logo-container { margin-bottom: 20px; }
         .logo-svg { width: 60px; height: 60px; }
         h1 {
@@ -124,7 +123,6 @@
             letter-spacing: 1px;
         }
 
-        /* --- Tab Navigation --- */
         .tab-nav {
             display: flex;
             justify-content: center;
@@ -153,7 +151,6 @@
             box-shadow: 0 4px 12px var(--primary-accent-shadow);
         }
 
-        /* --- Tab Content --- */
         .tab-content { display: none; animation: fadeIn 0.5s; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -204,7 +201,6 @@
             background-color: rgba(144, 144, 144, 0.2);
         }
         
-        /* --- Add New Button & Form --- */
         .add-button-section { margin-top: 20px; }
         .add-button {
             background: none;
@@ -249,7 +245,6 @@
         .save-btn { background-color: var(--button-green); color: white; }
         .cancel-btn { background-color: var(--button-grey); color: white; }
 
-        /* --- Footer & Tab Settings Button --- */
         .footer {
             margin-top: 40px;
             display: flex;
@@ -272,7 +267,6 @@
             color: var(--text-color);
         }
         
-        /* --- Modals --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.6);
@@ -285,7 +279,6 @@
         }
         .modal-content h3 { margin-top: 0; color: var(--text-color); }
 
-        /* --- Tab Management Modal --- */
         #tab-settings-list {
             list-style: none;
             padding: 0;
@@ -307,21 +300,25 @@
             text-align: left;
             margin-left: 5px;
         }
-
+        
+        .admin-only {
+            display: none;
+        }
     </style>
-    <!-- Google Fonts import -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Lobster&family=Montserrat:wght@600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
     
-    <!-- Canvas for animated background -->
     <canvas id="background-canvas"></canvas>
 
     <div class="dashboard">
-        <button id="theme-toggle" class="theme-toggle" title="Tukar Tema">☀️</button>
-        <!-- Logo and Title Section -->
+        <div class="top-controls">
+            <button id="admin-login-btn" class="icon-button" title="Log Masuk Admin">🔑</button>
+            <button id="logout-btn" class="icon-button admin-only" title="Log Keluar">🚪</button>
+            <button id="theme-toggle" class="icon-button" title="Tukar Tema">☀️</button>
+        </div>
         <div class="logo-container">
             <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <path d="M50 15 L85 85 L15 85 Z" fill="#1c1c1e"/>
@@ -331,20 +328,15 @@
         <h1>MyHUB</h1>
         <p class="subtitle">A.Shamil©</p>
 
-        <!-- Tab Navigation (will be generated by JS) -->
         <div class="tab-nav" id="tab-navigation"></div>
-
-        <!-- Tab Content Panels (will be generated by JS) -->
         <div id="tab-content-container"></div>
 
-        <!-- Footer Section -->
         <footer class="footer">
-            <button id="tab-settings-btn" class="settings-btn">⚙️ Tetapan Tab</button>
+            <button id="tab-settings-btn" class="settings-btn admin-only">⚙️ Tetapan Tab</button>
             <p class="footer-text">Abd. Shamil Ahmad Sukri || &copy;2025</p>
         </footer>
     </div>
     
-    <!-- Message Box -->
     <div id="message-box" class="modal-overlay">
         <div class="modal-content">
             <p id="message-box-text"></p>
@@ -352,7 +344,20 @@
         </div>
     </div>
 
-    <!-- Edit Link Modal -->
+    <div id="login-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Log Masuk Admin</h3>
+            <div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;">
+                <input type="email" id="email-input" class="form-input" placeholder="E-mel">
+                <input type="password" id="password-input" class="form-input" placeholder="Kata Laluan">
+                <div class="form-actions" style="margin-top: 10px;">
+                    <button type="button" class="form-button cancel-btn" id="login-cancel-btn">Batal</button>
+                    <button type="button" class="form-button save-btn" id="login-submit-btn">Log Masuk</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="edit-modal" class="modal-overlay">
         <div class="modal-content">
             <h3>Sunting Pautan</h3>
@@ -368,13 +373,10 @@
         </div>
     </div>
 
-    <!-- Tab Settings Modal -->
     <div id="tab-settings-modal" class="modal-overlay">
         <div class="modal-content">
             <h3>Urus Tab Anda</h3>
-            <ul id="tab-settings-list">
-                <!-- Tab items will be injected here by JS -->
-            </ul>
+            <ul id="tab-settings-list"></ul>
             <div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;">
                 <input type="text" id="new-tab-name-input" class="form-input" placeholder="Nama Tab Baharu">
                 <button type="button" class="form-button save-btn" style="flex: 0 1 auto; margin-left: 10px;" id="add-new-tab-btn">Tambah</button>
@@ -385,14 +387,11 @@
         </div>
     </div>
 
-
     <script type="module">
-        // Import necessary Firebase functions
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, getDocs, doc, deleteDoc, updateDoc, writeBatch, arrayUnion, arrayRemove, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // --- Firebase and App Configuration ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyArk4ufQelk1dWqYK5FHi9_qSABHmeGe-E",
             authDomain: "myhub-by-shamil.firebaseapp.com",
@@ -404,27 +403,25 @@
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'myhub-by-shamil-app';
         
-        // Initialize Firebase
+        // =================================================================
+        // UID Admin anda telah dimasukkan di sini
+        // =================================================================
+        const ADMIN_UID = 'LG3URVl9wKZ6Qdj4pqecKtJTx382'; 
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         
-        // --- DOM Elements ---
         const messageBox = document.getElementById('message-box');
         const messageBoxText = document.getElementById('message-box-text');
         const messageBoxActions = document.getElementById('message-box-actions');
+        const loginModal = document.getElementById('login-modal');
         const editModal = document.getElementById('edit-modal');
-        const editIdInput = document.getElementById('edit-id-input');
-        const editNameInput = document.getElementById('edit-name-input');
-        const editUrlInput = document.getElementById('edit-url-input');
         const tabSettingsModal = document.getElementById('tab-settings-modal');
 
-        // --- Global State ---
         let currentCategories = [];
         let activeTab = null;
-        let isAppInitialized = false;
 
-        // --- Custom Message Box ---
         function showMessage(text, type = 'alert') {
             return new Promise((resolve) => {
                 messageBoxText.textContent = text;
@@ -451,15 +448,28 @@
             });
         }
 
-        // --- UI Generation ---
-        function generateTabsAndContent(categories) {
+        function updateUIVisibility(isAdmin) {
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = isAdmin ? 'flex' : 'none';
+            });
+            document.getElementById('admin-login-btn').style.display = isAdmin ? 'none' : 'flex';
+            
+            document.querySelectorAll('.item-actions').forEach(el => {
+                el.style.display = isAdmin ? 'flex' : 'none';
+            });
+            document.querySelectorAll('.add-button-section').forEach(el => {
+                el.style.display = isAdmin ? 'block' : 'none';
+            });
+        }
+
+        function generateTabsAndContent(categories, isAdmin) {
             const tabNavContainer = document.getElementById('tab-navigation');
             const tabContentContainer = document.getElementById('tab-content-container');
             tabNavContainer.innerHTML = '';
             tabContentContainer.innerHTML = '';
 
             if (categories.length === 0) {
-                tabContentContainer.innerHTML = `<p style="color: var(--subtitle-color);">Tiada tab. Sila tambah tab baharu melalui Tetapan Tab.</p>`;
+                tabContentContainer.innerHTML = `<p style="color: var(--subtitle-color);">Tiada tab.</p>`;
                 return;
             }
 
@@ -479,7 +489,7 @@
                 contentDiv.className = 'tab-content';
                 contentDiv.style.display = category === activeTab ? 'block' : 'none';
                 contentDiv.innerHTML = `<div id="button-container-${category}" class="button-container"></div>
-                    <div class="add-button-section">
+                    <div class="add-button-section admin-only">
                         <button class="add-button" id="add-btn-${category}">+ Tambah Pautan Baharu</button>
                         <div class="add-form" id="add-form-${category}">
                             <input type="text" id="name-input-${category}" class="form-input" placeholder="Nama Pautan">
@@ -491,11 +501,11 @@
                         </div>
                     </div>`;
                 tabContentContainer.appendChild(contentDiv);
-                setupLinkListeners(category, auth.currentUser.uid);
+                setupLinkListeners(category);
             });
+            updateUIVisibility(isAdmin);
         }
 
-        // --- Theme & Canvas ---
         function setupThemeSwitcher() {
             const themeToggle = document.getElementById('theme-toggle');
             const currentTheme = localStorage.getItem('theme') || 'dark';
@@ -509,6 +519,7 @@
                 localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
             };
         }
+        
         function setupCanvasAnimation() {
             const canvas = document.getElementById('background-canvas');
             if (!canvas) return;
@@ -568,9 +579,8 @@
             window.addEventListener('resize', init);
         }
 
-        // --- Data & Link Management ---
-        function setupLinkListeners(category, userId) {
-            const linksCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/links`);
+        function setupLinkListeners(category) {
+            const linksCollectionRef = collection(db, `artifacts/${appId}/public/links`);
             const q = query(linksCollectionRef, where("category", "==", category));
 
             onSnapshot(q, (querySnapshot) => {
@@ -583,7 +593,7 @@
                     const linkItem = document.createElement('div');
                     linkItem.className = 'link-item';
                     linkItem.innerHTML = `<a href="${linkData.url}" target="_blank" rel="noopener noreferrer">${linkData.name}</a>
-                        <div class="item-actions">
+                        <div class="item-actions admin-only">
                             <button class="action-btn edit-link-btn" title="Sunting">✏️</button>
                             <button class="action-btn delete-link-btn" title="Padam">🗑️</button>
                         </div>`;
@@ -591,40 +601,35 @@
                     linkItem.querySelector('.delete-link-btn').onclick = () => deleteLink(docSnapshot.id, linkData.name);
                     container.appendChild(linkItem);
                 });
+                updateUIVisibility(auth.currentUser?.uid === ADMIN_UID);
             });
 
             const addBtn = document.getElementById(`add-btn-${category}`);
-            const addForm = document.getElementById(`add-form-${category}`);
             if (!addBtn) return;
-            addBtn.onclick = () => { addForm.style.display = 'flex'; addBtn.style.display = 'none'; };
-            document.getElementById(`cancel-btn-${category}`).onclick = () => { addForm.style.display = 'none'; addBtn.style.display = 'block'; };
+            addBtn.onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'flex'; addBtn.style.display = 'none'; };
+            document.getElementById(`cancel-btn-${category}`).onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'none'; addBtn.style.display = 'block'; };
             document.getElementById(`save-btn-${category}`).onclick = async () => {
                 const name = document.getElementById(`name-input-${category}`).value.trim();
                 const url = document.getElementById(`url-input-${category}`).value.trim();
                 if (name && url) {
-                    try {
-                        await addDoc(linksCollectionRef, { name, url, category, userId, createdAt: serverTimestamp() });
-                        document.getElementById(`cancel-btn-${category}`).click();
-                    } catch (e) { showMessage("Gagal menyimpan pautan."); }
+                    await addDoc(linksCollectionRef, { name, url, category, createdAt: serverTimestamp() });
+                    document.getElementById(`cancel-btn-${category}`).click();
                 } else { showMessage("Sila isi nama dan URL."); }
             };
         }
         async function deleteLink(docId, linkName) {
             const confirmed = await showMessage(`Anda pasti mahu padam pautan "${linkName}"?`, 'confirm');
             if (confirmed) {
-                try {
-                    await deleteDoc(doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/links`, docId));
-                } catch (error) { showMessage("Gagal memadam pautan."); }
+                await deleteDoc(doc(db, `artifacts/${appId}/public/links`, docId));
             }
         }
         function openEditModal(docId, name, url) {
-            editIdInput.value = docId;
-            editNameInput.value = name;
-            editUrlInput.value = url;
+            document.getElementById('edit-id-input').value = docId;
+            document.getElementById('edit-name-input').value = name;
+            document.getElementById('edit-url-input').value = url;
             editModal.style.display = 'flex';
         }
 
-        // --- Tab Management ---
         function populateTabManagementModal(categories) {
             const list = document.getElementById('tab-settings-list');
             list.innerHTML = '';
@@ -641,7 +646,7 @@
                 list.appendChild(item);
             });
         }
-        function handleRenameTab(oldName, itemElement) {
+        async function handleRenameTab(oldName, itemElement) {
             const nameSpan = itemElement.querySelector('.tab-name');
             nameSpan.innerHTML = `<input type="text" class="form-input" value="${oldName}" style="flex-grow: 1; margin-right: 5px;"/>
                 <button class="action-btn save-rename-btn">✔️</button>
@@ -653,8 +658,8 @@
             nameSpan.querySelector('.save-rename-btn').onclick = async () => {
                 const newName = input.value.trim();
                 if (newName && newName !== oldName && !currentCategories.includes(newName)) {
-                    const categoriesDocRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/settings/categories`);
-                    const linksCollectionRef = collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/links`);
+                    const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings/categories`);
+                    const linksCollectionRef = collection(db, `artifacts/${appId}/public/links`);
                     const q = query(linksCollectionRef, where("category", "==", oldName));
                     
                     const batch = writeBatch(db);
@@ -667,20 +672,20 @@
                     batch.update(categoriesDocRef, { names: newCategories });
                     
                     await batch.commit();
-                    activeTab = newName; // Switch active tab to the new name
+                    activeTab = newName;
                 } else {
-                    populateTabManagementModal(currentCategories); // Revert UI
+                    populateTabManagementModal(currentCategories);
                 }
             };
             nameSpan.querySelector('.cancel-rename-btn').onclick = () => {
-                populateTabManagementModal(currentCategories); // Revert UI
+                populateTabManagementModal(currentCategories);
             };
         }
         async function handleDeleteTab(tabName) {
             const confirmed = await showMessage(`Anda pasti mahu padam tab "${tabName}"? SEMUA pautan di dalamnya akan dipadam secara kekal.`, 'confirm');
             if (confirmed) {
-                const categoriesDocRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/settings/categories`);
-                const linksCollectionRef = collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/links`);
+                const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings/categories`);
+                const linksCollectionRef = collection(db, `artifacts/${appId}/public/links`);
                 const q = query(linksCollectionRef, where("category", "==", tabName));
 
                 const batch = writeBatch(db);
@@ -696,7 +701,7 @@
             const input = document.getElementById('new-tab-name-input');
             const newName = input.value.trim();
             if (newName && !currentCategories.includes(newName)) {
-                const categoriesDocRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/settings/categories`);
+                const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings/categories`);
                 await updateDoc(categoriesDocRef, { names: arrayUnion(newName) });
                 input.value = '';
             } else if (currentCategories.includes(newName)) {
@@ -704,29 +709,6 @@
             }
         }
 
-        async function seedInitialLinksIfNeeded(userId) {
-            const linksCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/links`);
-            const initialQuery = await getDocs(linksCollectionRef);
-
-            if (initialQuery.empty) {
-                console.log("Seeding initial links for new user...");
-                const initialLinks = [
-                    { name: '# NotebookLM', url: 'https://samil-mey.github.io/NLM4TEACHERS/', category: 'Bengkel' },
-                    { name: 'Kubeez Calc', url: 'https://samil-mey.github.io/ADV-cal25/', category: 'Projek' },
-                    { name: 'AKAR ILMU', url: 'https://samil-mey.github.io/akar-ilmu25v2/', category: 'Projek' },
-                    { name: 'Folder Projek', url: 'https://drive.google.com/drive/folders/1KrqaLWa16sXkfqTRauU1WPE4HKXwLqzM?usp=sharing', category: 'Drive' },
-                    { name: 'Contoh Pautan AI', url: 'https://chatgpt.com', category: 'AI' }
-                ];
-                const batch = writeBatch(db);
-                initialLinks.forEach(link => {
-                    const newLinkRef = doc(linksCollectionRef);
-                    batch.set(newLinkRef, { ...link, userId, createdAt: serverTimestamp() });
-                });
-                await batch.commit();
-            }
-        }
-        
-        // --- Global Tab Function ---
         window.openTab = function(evt, tabName) {
             activeTab = tabName;
             document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
@@ -735,18 +717,33 @@
             evt.currentTarget.classList.add('active');
         }
 
-        // --- APP INITIALIZATION ---
-        function initializeUI() {
+        function main() {
             setupThemeSwitcher();
             setupCanvasAnimation();
+            
+            document.getElementById('admin-login-btn').onclick = () => { loginModal.style.display = 'flex'; };
+            document.getElementById('login-cancel-btn').onclick = () => { loginModal.style.display = 'none'; };
+            document.getElementById('logout-btn').onclick = () => signOut(auth);
+            document.getElementById('login-submit-btn').onclick = async () => {
+                const email = document.getElementById('email-input').value;
+                const password = document.getElementById('password-input').value;
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    loginModal.style.display = 'none';
+                } catch (error) {
+                    showMessage("Log masuk gagal. Sila semak e-mel dan kata laluan.");
+                }
+            };
+
             document.getElementById('edit-cancel-btn').onclick = () => { editModal.style.display = 'none'; };
             document.getElementById('edit-save-btn').onclick = async () => {
-                const docId = editIdInput.value, newName = editNameInput.value.trim(), newUrl = editUrlInput.value.trim();
+                const docId = document.getElementById('edit-id-input').value;
+                const newName = document.getElementById('edit-name-input').value.trim();
+                const newUrl = document.getElementById('edit-url-input').value.trim();
                 if (docId && newName && newUrl) {
-                    const docRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/links`, docId);
-                    await updateDoc(docRef, { name: newName, url: newUrl });
+                    await updateDoc(doc(db, `artifacts/${appId}/public/links`, docId), { name: newName, url: newUrl });
                     editModal.style.display = 'none';
-                } else { showMessage("Sila isi nama dan URL."); }
+                }
             };
             document.getElementById('tab-settings-btn').onclick = () => { 
                 populateTabManagementModal(currentCategories);
@@ -754,42 +751,29 @@
             };
             document.getElementById('close-tab-settings-btn').onclick = () => { tabSettingsModal.style.display = 'none'; };
             document.getElementById('add-new-tab-btn').onclick = handleAddNewTab;
+
+            const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings/categories`);
+            onSnapshot(categoriesDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    currentCategories = docSnap.data().names;
+                } else {
+                    currentCategories = ['Bengkel', 'Projek', 'Drive', 'AI'];
+                    setDoc(categoriesDocRef, { names: currentCategories });
+                }
+                const isAdmin = auth.currentUser?.uid === ADMIN_UID;
+                generateTabsAndContent(currentCategories, isAdmin);
+            });
+
+            onAuthStateChanged(auth, user => {
+                const isAdmin = user?.uid === ADMIN_UID;
+                updateUIVisibility(isAdmin);
+                if (!user) {
+                    signInAnonymously(auth).catch(err => console.error("Anonymous sign-in failed", err));
+                }
+            });
         }
 
-        // --- AUTHENTICATION (Simplified, based on old working code) ---
-        onAuthStateChanged(auth, user => {
-            if (user) {
-                // User is signed in.
-                console.log("User authenticated with UID:", user.uid);
-
-                // Initialize UI only once
-                if (!isAppInitialized) {
-                    initializeUI();
-                    isAppInitialized = true;
-                }
-
-                // Start listening for categories and data
-                const categoriesDocRef = doc(db, `artifacts/${appId}/users/${user.uid}/settings/categories`);
-                onSnapshot(categoriesDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        currentCategories = docSnap.data().names;
-                        generateTabsAndContent(currentCategories);
-                    } else {
-                        const initialCategories = ['Bengkel', 'Projek', 'Drive', 'AI'];
-                        setDoc(categoriesDocRef, { names: initialCategories })
-                            .then(() => seedInitialLinksIfNeeded(user.uid));
-                    }
-                });
-
-            } else {
-                // User is signed out. Try to sign in anonymously.
-                signInAnonymously(auth).catch(error => {
-                    console.error("Anonymous sign-in failed:", error);
-                    showMessage(`Gagal memulakan sesi pengesahan. Ralat: ${error.message}`);
-                });
-            }
-        });
-
+        main();
     </script>
 
 </body>

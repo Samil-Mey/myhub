@@ -113,11 +113,6 @@
             align-items: center; gap: 15px;
         }
         .footer-text { font-size: 12px; color: var(--subtitle-color); }
-        .settings-btn {
-            background: none; border: 1px solid var(--border-color); color: var(--subtitle-color);
-            padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;
-        }
-        .settings-btn:hover { background-color: var(--border-color); color: var(--text-color); }
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.6); display: none; align-items: center;
@@ -128,14 +123,6 @@
             width: 90%; max-width: 400px;
         }
         .modal-content h3 { margin-top: 0; color: var(--text-color); }
-        #tab-settings-list {
-            list-style: none; padding: 0; margin: 20px 0; max-height: 250px; overflow-y: auto;
-        }
-        .tab-setting-item {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 10px; border-radius: 8px; background-color: var(--bg-color); margin-bottom: 10px;
-        }
-        .tab-setting-item .tab-name { flex-grow: 1; text-align: left; margin-left: 5px; }
         .admin-controls { display: none; }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -164,18 +151,16 @@
         <div id="tab-content-container"></div>
 
         <footer class="footer">
-            <button id="tab-settings-btn" class="settings-btn admin-controls">⚙️ Tetapan Tab</button>
             <p class="footer-text">Abd. Shamil Ahmad Sukri || &copy;2025</p>
         </footer>
     </div>
     
     <div id="message-box" class="modal-overlay"><div class="modal-content"><p id="message-box-text"></p><div id="message-box-actions"></div></div></div>
     <div id="edit-modal" class="modal-overlay"><div class="modal-content"><h3>Sunting Pautan</h3><div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;"><input type="hidden" id="edit-id-input"><input type="text" id="edit-name-input" class="form-input" placeholder="Nama Pautan"><input type="url" id="edit-url-input" class="form-input" placeholder="URL Pautan"><div class="form-actions" style="margin-top: 10px;"><button type="button" class="form-button cancel-btn" id="edit-cancel-btn">Batal</button><button type="button" class="form-button save-btn" id="edit-save-btn">Simpan</button></div></div></div></div>
-    <div id="tab-settings-modal" class="modal-overlay"><div class="modal-content"><h3>Urus Tab Anda</h3><ul id="tab-settings-list"></ul><div class="add-form" style="display: flex; padding: 0; margin-top: 15px; background: none;"><input type="text" id="new-tab-name-input" class="form-input" placeholder="Nama Tab Baharu"><button type="button" class="form-button save-btn" style="flex: 0 1 auto; margin-left: 10px;" id="add-new-tab-btn">Tambah</button></div><div class="form-actions" style="margin-top: 20px;"><button type="button" class="form-button cancel-btn" id="close-tab-settings-btn">Tutup</button></div></div></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, getDocs, doc, deleteDoc, updateDoc, writeBatch, arrayUnion, arrayRemove, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -190,6 +175,7 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'myhub-by-shamil-app';
         
         const SAFE_KEY = '270603'; 
+        const CATEGORIES = ['WORK || PROJECT', 'DRIVE', 'DOC', 'DASH'];
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -199,11 +185,8 @@
         const messageBoxText = document.getElementById('message-box-text');
         const messageBoxActions = document.getElementById('message-box-actions');
         const editModal = document.getElementById('edit-modal');
-        const tabSettingsModal = document.getElementById('tab-settings-modal');
 
-        let currentCategories = [];
-        let activeTab = null;
-        let unsubscribeCategories = null; 
+        let activeTab = CATEGORIES[0];
         let isAdminMode = false;
 
         function showMessage(text, type = 'alert') {
@@ -235,34 +218,22 @@
         function updateUIVisibility() {
             const adminToggleButton = document.getElementById('admin-toggle-btn');
             document.querySelectorAll('.admin-controls').forEach(el => {
-                el.style.display = isAdminMode ? 'flex' : 'none';
+                el.style.display = isAdminMode ? 'block' : 'none';
             });
              document.querySelectorAll('.item-actions').forEach(el => {
                 el.style.display = isAdminMode ? 'flex' : 'none';
-            });
-            document.querySelectorAll('.add-button-section').forEach(el => {
-                el.style.display = isAdminMode ? 'block' : 'none';
             });
             adminToggleButton.innerHTML = isAdminMode ? '🔒' : '🔑';
             adminToggleButton.title = isAdminMode ? 'Kunci Mod Admin' : 'Buka Kunci Mod Admin';
         }
 
-        function generateTabsAndContent(categories) {
+        function generateTabsAndContent() {
             const tabNavContainer = document.getElementById('tab-navigation');
             const tabContentContainer = document.getElementById('tab-content-container');
             tabNavContainer.innerHTML = '';
             tabContentContainer.innerHTML = '';
 
-            if (!categories || categories.length === 0) {
-                tabContentContainer.innerHTML = `<p style="color: var(--subtitle-color);">Tiada tab. Buka kunci mod admin untuk menambah tab baharu.</p>`;
-                return;
-            }
-
-            if (!activeTab || !categories.includes(activeTab)) {
-                activeTab = categories[0];
-            }
-
-            categories.forEach(category => {
+            CATEGORIES.forEach(category => {
                 const tabButton = document.createElement('button');
                 tabButton.className = `tab-link ${category === activeTab ? 'active' : ''}`;
                 tabButton.textContent = category;
@@ -286,7 +257,6 @@
                         </div>
                     </div>`;
                 tabContentContainer.appendChild(contentDiv);
-                setupLinkListeners(category);
             });
             updateUIVisibility();
         }
@@ -363,52 +333,55 @@
             window.addEventListener('resize', init);
         }
 
-        function setupLinkListeners(category) {
-            const linksCollectionRef = collection(db, `artifacts/${appId}/public/links`);
-            const q = query(linksCollectionRef, where("category", "==", category));
+        function setupLinkListeners(userId) {
+            CATEGORIES.forEach(category => {
+                const linksCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/links`);
+                const q = query(linksCollectionRef, where("category", "==", category));
 
-            onSnapshot(q, (querySnapshot) => {
-                const container = document.getElementById(`button-container-${category}`);
-                if (!container) return;
-                container.innerHTML = '';
-                const docs = querySnapshot.docs.sort((a, b) => (a.data().createdAt?.toMillis() || 0) - (b.data().createdAt?.toMillis() || 0));
-                docs.forEach((docSnapshot) => {
-                    const linkData = docSnapshot.data();
-                    const linkItem = document.createElement('div');
-                    linkItem.className = 'link-item';
-                    linkItem.innerHTML = `<a href="${linkData.url}" target="_blank" rel="noopener noreferrer">${linkData.name}</a>
-                        <div class="item-actions admin-controls">
-                            <button class="action-btn edit-link-btn" title="Sunting">✏️</button>
-                            <button class="action-btn delete-link-btn" title="Padam">🗑️</button>
-                        </div>`;
-                    linkItem.querySelector('.edit-link-btn').onclick = () => openEditModal(docSnapshot.id, linkData.name, linkData.url);
-                    linkItem.querySelector('.delete-link-btn').onclick = () => deleteLink(docSnapshot.id, linkData.name);
-                    container.appendChild(linkItem);
+                onSnapshot(q, (querySnapshot) => {
+                    const container = document.getElementById(`button-container-${category}`);
+                    if (!container) return;
+                    container.innerHTML = '';
+                    const docs = querySnapshot.docs.sort((a, b) => (a.data().createdAt?.toMillis() || 0) - (b.data().createdAt?.toMillis() || 0));
+                    docs.forEach((docSnapshot) => {
+                        const linkData = docSnapshot.data();
+                        const linkItem = document.createElement('div');
+                        linkItem.className = 'link-item';
+                        linkItem.innerHTML = `<a href="${linkData.url}" target="_blank" rel="noopener noreferrer">${linkData.name}</a>
+                            <div class="item-actions admin-controls">
+                                <button class="action-btn edit-link-btn" title="Sunting">✏️</button>
+                                <button class="action-btn delete-link-btn" title="Padam">🗑️</button>
+                            </div>`;
+                        linkItem.querySelector('.edit-link-btn').onclick = () => openEditModal(docSnapshot.id, linkData.name, linkData.url);
+                        linkItem.querySelector('.delete-link-btn').onclick = () => deleteLink(docSnapshot.id, linkData.name);
+                        container.appendChild(linkItem);
+                    });
+                    updateUIVisibility();
                 });
-                updateUIVisibility();
-            });
 
-            const addBtn = document.getElementById(`add-btn-${category}`);
-            if (!addBtn) return;
-            addBtn.onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'flex'; addBtn.style.display = 'none'; };
-            document.getElementById(`cancel-btn-${category}`).onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'none'; addBtn.style.display = 'block'; };
-            document.getElementById(`save-btn-${category}`).onclick = async () => {
-                const nameInput = document.getElementById(`name-input-${category}`);
-                const urlInput = document.getElementById(`url-input-${category}`);
-                const name = nameInput.value.trim();
-                const url = urlInput.value.trim();
-                if (name && url) {
-                    await addDoc(linksCollectionRef, { name, url, category, createdAt: serverTimestamp() });
-                    nameInput.value = '';
-                    urlInput.value = '';
-                    document.getElementById(`cancel-btn-${category}`).click();
-                } else { showMessage("Sila isi nama dan URL."); }
-            };
+                const addBtn = document.getElementById(`add-btn-${category}`);
+                if (!addBtn) return;
+                addBtn.onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'flex'; addBtn.style.display = 'none'; };
+                document.getElementById(`cancel-btn-${category}`).onclick = () => { document.getElementById(`add-form-${category}`).style.display = 'none'; addBtn.style.display = 'block'; };
+                document.getElementById(`save-btn-${category}`).onclick = async () => {
+                    const nameInput = document.getElementById(`name-input-${category}`);
+                    const urlInput = document.getElementById(`url-input-${category}`);
+                    const name = nameInput.value.trim();
+                    const url = urlInput.value.trim();
+                    if (name && url) {
+                        await addDoc(linksCollectionRef, { name, url, category, createdAt: serverTimestamp() });
+                        nameInput.value = '';
+                        urlInput.value = '';
+                        document.getElementById(`cancel-btn-${category}`).click();
+                    } else { showMessage("Sila isi nama dan URL."); }
+                };
+            });
         }
         async function deleteLink(docId, linkName) {
             const confirmed = await showMessage(`Anda pasti mahu padam pautan "${linkName}"?`, 'confirm');
             if (confirmed) {
-                await deleteDoc(doc(db, `artifacts/${appId}/public/links`, docId));
+                const userId = auth.currentUser.uid;
+                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/links`, docId));
             }
         }
         function openEditModal(docId, name, url) {
@@ -416,85 +389,6 @@
             document.getElementById('edit-name-input').value = name;
             document.getElementById('edit-url-input').value = url;
             editModal.style.display = 'flex';
-        }
-
-        function populateTabManagementModal(categories) {
-            const list = document.getElementById('tab-settings-list');
-            list.innerHTML = '';
-            categories.forEach(name => {
-                const item = document.createElement('li');
-                item.className = 'tab-setting-item';
-                item.innerHTML = `<span class="tab-name">${name}</span>
-                    <div class="item-actions">
-                        <button class="action-btn rename-tab-btn" title="Tukar Nama">✏️</button>
-                        <button class="action-btn delete-tab-btn" title="Padam">🗑️</button>
-                    </div>`;
-                item.querySelector('.rename-tab-btn').onclick = () => handleRenameTab(name, item);
-                item.querySelector('.delete-tab-btn').onclick = () => handleDeleteTab(name);
-                list.appendChild(item);
-            });
-        }
-        async function handleRenameTab(oldName, itemElement) {
-            const nameSpan = itemElement.querySelector('.tab-name');
-            nameSpan.innerHTML = `<input type="text" class="form-input" value="${oldName}" style="flex-grow: 1; margin-right: 5px;"/>
-                <button class="action-btn save-rename-btn">✔️</button>
-                <button class="action-btn cancel-rename-btn">❌</button>`;
-            
-            const input = nameSpan.querySelector('input');
-            input.focus();
-
-            nameSpan.querySelector('.save-rename-btn').onclick = async () => {
-                const newName = input.value.trim();
-                if (newName && newName !== oldName && !currentCategories.includes(newName)) {
-                    const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
-                    const linksCollectionRef = collection(db, `artifacts/${appId}/public/links`);
-                    const q = query(linksCollectionRef, where("category", "==", oldName));
-                    
-                    const batch = writeBatch(db);
-                    const querySnapshot = await getDocs(q);
-                    querySnapshot.forEach(doc => {
-                        batch.update(doc.ref, { category: newName });
-                    });
-                    
-                    const newCategories = currentCategories.map(c => c === oldName ? newName : c);
-                    batch.update(categoriesDocRef, { names: newCategories });
-                    
-                    await batch.commit();
-                    activeTab = newName;
-                } else {
-                    populateTabManagementModal(currentCategories);
-                }
-            };
-            nameSpan.querySelector('.cancel-rename-btn').onclick = () => {
-                populateTabManagementModal(currentCategories);
-            };
-        }
-        async function handleDeleteTab(tabName) {
-            const confirmed = await showMessage(`Anda pasti mahu padam tab "${tabName}"? SEMUA pautan di dalamnya akan dipadam secara kekal.`, 'confirm');
-            if (confirmed) {
-                const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
-                const linksCollectionRef = collection(db, `artifacts/${appId}/public/links`);
-                const q = query(linksCollectionRef, where("category", "==", tabName));
-
-                const batch = writeBatch(db);
-                const querySnapshot = await getDocs(q);
-                querySnapshot.forEach(doc => batch.delete(doc.ref));
-                
-                batch.update(categoriesDocRef, { names: arrayRemove(tabName) });
-
-                await batch.commit();
-            }
-        }
-        async function handleAddNewTab() {
-            const input = document.getElementById('new-tab-name-input');
-            const newName = input.value.trim();
-            if (newName && !currentCategories.includes(newName)) {
-                const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
-                await setDoc(categoriesDocRef, { names: arrayUnion(newName) }, { merge: true });
-                input.value = '';
-            } else if (currentCategories.includes(newName)) {
-                showMessage(`Tab "${newName}" sudah wujud.`);
-            }
         }
 
         window.openTab = function(evt, tabName) {
@@ -508,6 +402,7 @@
         function main() {
             setupThemeSwitcher();
             setupCanvasAnimation();
+            generateTabsAndContent();
             
             document.getElementById('admin-toggle-btn').onclick = () => {
                 if (isAdminMode) {
@@ -526,46 +421,27 @@
 
             document.getElementById('edit-cancel-btn').onclick = () => { editModal.style.display = 'none'; };
             document.getElementById('edit-save-btn').onclick = async () => {
+                const userId = auth.currentUser.uid;
                 const docId = document.getElementById('edit-id-input').value;
                 const newName = document.getElementById('edit-name-input').value.trim();
                 const newUrl = document.getElementById('edit-url-input').value.trim();
                 if (docId && newName && newUrl) {
-                    await updateDoc(doc(db, `artifacts/${appId}/public/links`, docId), { name: newName, url: newUrl });
+                    await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/links`, docId), { name: newName, url: newUrl });
                     editModal.style.display = 'none';
                 }
             };
-            document.getElementById('tab-settings-btn').onclick = () => { 
-                populateTabManagementModal(currentCategories);
-                tabSettingsModal.style.display = 'flex';
-            };
-            document.getElementById('close-tab-settings-btn').onclick = () => { tabSettingsModal.style.display = 'none'; };
-            document.getElementById('add-new-tab-btn').onclick = handleAddNewTab;
 
             onAuthStateChanged(auth, user => {
                 if (user) {
-                    const categoriesDocRef = doc(db, `artifacts/${appId}/public/settings`);
-                    if (unsubscribeCategories) unsubscribeCategories();
-                    
-                    unsubscribeCategories = onSnapshot(categoriesDocRef, (docSnap) => {
-                        if (docSnap.exists()) {
-                            currentCategories = docSnap.data().names;
-                        } else {
-                            currentCategories = [];
-                        }
-                        generateTabsAndContent(currentCategories);
-                    }, error => {
-                        console.error("Error getting categories:", error);
-                        showMessage(`Gagal memuatkan data tab. Ralat: ${error.message}`);
+                    console.log("Authenticated with UID:", user.uid);
+                    setupLinkListeners(user.uid);
+                } else {
+                    signInAnonymously(auth).catch(err => {
+                        console.error("Anonymous sign-in failed", err);
+                        showMessage(`Gagal menyambung ke servis. Ralat: ${err.message}`);
                     });
                 }
             });
-
-            if (!auth.currentUser) {
-                signInAnonymously(auth).catch(err => {
-                    console.error("Anonymous sign-in failed", err);
-                    showMessage(`Gagal menyambung ke servis. Ralat: ${err.message}`);
-                });
-            }
         }
 
         main();
